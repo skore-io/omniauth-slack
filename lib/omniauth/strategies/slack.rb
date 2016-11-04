@@ -22,7 +22,7 @@ module OmniAuth
       # User ID is not guaranteed to be globally unique across all Slack users.
       # The combination of user ID and team ID, on the other hand, is guaranteed
       # to be globally unique.
-      uid { "#{user_identity['id']}-#{team_identity['id']}" }
+      uid { raw_info['user_id'] }
 
       info do
         hash = {
@@ -64,6 +64,10 @@ module OmniAuth
         end
       end
 
+      def raw_info
+        @raw_info ||= access_token.get('/api/auth.test').parsed
+      end
+
       def identity
         @identity ||= access_token.get('/api/users.identity').parsed
       end
@@ -78,7 +82,7 @@ module OmniAuth
 
       def user_info
         url = URI.parse('/api/users.info')
-        url.query = Rack::Utils.build_query(user: user_identity['id'])
+        url.query = Rack::Utils.build_query(user: raw_info['user_id'])
         url = url.to_s
 
         @user_info ||= access_token.get(url).parsed
